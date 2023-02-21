@@ -1,1 +1,2 @@
-# crag_finder
+# Finds top crags in a climbing area.
+Uses the `route-finder.csv` downloaded from [mountainproject](www.mountainproject.com) to find crags with the most routes according to difficulty and average stars.
