@@ -1,31 +1,30 @@
 import pandas as pd
-import numpy as np
+
 
 """finds top crags by route downloads
 from csvs exported by mountainproject.com.
 """
 
-# dictionary of rating categories w/ranking
-RATINGS = {
-    "5.7-5.9": 3,
+global area
+global ratings
+
+area = 'hatcher_pass'
+ratings = {
+    "<= 5.6": 3,
+    "5.7-5.9": 5,
     "5.10a-d": 4,
     "5.11a-d": 2,
-    "5.12a-d": 1,
-    "<= 5.6": 0
+    "5.12a-d": 1
 }
 
-# name of area
-AREA = 'clear_creek'
 
-# file path to csv downloaded from mountainproject
-CSV = f'{AREA}/route-finder.csv'
-
-
-def filter_routes(sport_only=True, no_deaths=True):
+def filter_routes(sport_only=False, no_deaths=False):
     """filters routes by type and assigns rating categories."""
     def categorize_ratings(row):
-        l = ['5.7', '5.8', '5.9']
-        if any(i in row['Rating'] for i in l):
+        scrambs = ['5.0', '5.1', '5.2', '5.3', '5.4', '5.5', '5.6']
+        easies = ['5.7', '5.8', '5.9']
+
+        if any(i in row['Rating'] for i in easies):
             cat = '5.7-5.9'
         elif '5.10' in row['Rating']:
             cat = '5.10a-d'
@@ -33,6 +32,8 @@ def filter_routes(sport_only=True, no_deaths=True):
             cat = '5.11a-d'
         elif '5.12' in row['Rating']:
             cat = '5.12a-d'
+        elif any(i in row['Rating'] for i in scrambs):
+            cat = '<= 5.6'
         else:
             cat = None
             
@@ -44,8 +45,7 @@ def filter_routes(sport_only=True, no_deaths=True):
         
         return row
     
-    
-    df = pd.read_csv(CSV)
+    df = pd.read_csv(f'{area}/route-finder.csv')
     
     if sport_only:
         r_types = ['Sport', 'Sport, TR']
@@ -153,9 +153,9 @@ def main():
     # find top crags by rating from rating dict
     sort_order = []
     
-    n = max([i for i in RATINGS.values()])
+    n = max([i for i in ratings.values()])
     for j in range(n, 0, -1):
-        rating = [i for i in RATINGS if RATINGS[i] == j][0]
+        rating = [i for i in ratings if ratings[i] == j][0]
         df = top_crags_by_rating(rating)
         dfs.append(df)
         
@@ -167,13 +167,13 @@ def main():
     
     # find crags with most rating diversity
     var_df = top_df
-    for rating in RATINGS:
-        if RATINGS[rating] != 0:
+    for rating in ratings:
+        if ratings[rating] != 0:
             var_df = var_df[~var_df[f'num_routes_{rating}'].isna()]
 
     # export
-    top_df.to_csv(f'{AREA}/{AREA}_top_crags_all.csv', index=True)
-    var_df.to_csv(f'{AREA}/{AREA}_top_crags_diverse.csv', index=True)
+    top_df.to_csv(f'{area}/{area}_top_crags_all.csv', index=True)
+    var_df.to_csv(f'{area}/{area}_top_crags_diverse.csv', index=True)
 
 
 if __name__ == "__main__":
